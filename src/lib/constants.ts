@@ -7,15 +7,30 @@ export const GENDER_OPTIONS = [
 ] as const;
 
 export const REGION_OPTIONS = [
-  { value: "東京", label: "東京" },
-  { value: "大阪", label: "大阪" },
-  { value: "北海道", label: "北海道" },
-  { value: "福岡", label: "福岡" },
-  { value: "沖縄", label: "沖縄" },
-  { value: "愛知", label: "愛知" },
-  { value: "広島", label: "広島" },
-  { value: "宮城", label: "宮城" },
+  { value: "日本", label: "🇯🇵 日本" },
+  { value: "アメリカ", label: "🇺🇸 アメリカ" },
+  { value: "イギリス", label: "🇬🇧 イギリス" },
+  { value: "フランス", label: "🇫🇷 フランス" },
+  { value: "中国", label: "🇨🇳 中国" },
+  { value: "インド", label: "🇮🇳 インド" },
+  { value: "ブラジル", label: "🇧🇷 ブラジル" },
+  { value: "ナイジェリア", label: "🇳🇬 ナイジェリア" },
+  { value: "オーストラリア", label: "🇦🇺 オーストラリア" },
+  { value: "ロシア", label: "🇷🇺 ロシア" },
 ] as const;
+
+export const REGION_CURRENCY: Record<string, { symbol: string; code: string }> = {
+  "日本": { symbol: "¥", code: "JPY" },
+  "アメリカ": { symbol: "$", code: "USD" },
+  "イギリス": { symbol: "£", code: "GBP" },
+  "フランス": { symbol: "€", code: "EUR" },
+  "中国": { symbol: "¥", code: "CNY" },
+  "インド": { symbol: "₹", code: "INR" },
+  "ブラジル": { symbol: "R$", code: "BRL" },
+  "ナイジェリア": { symbol: "₦", code: "NGN" },
+  "オーストラリア": { symbol: "A$", code: "AUD" },
+  "ロシア": { symbol: "₽", code: "RUB" },
+};
 
 export type Gender = (typeof GENDER_OPTIONS)[number]["value"];
 export type Region = (typeof REGION_OPTIONS)[number]["value"];

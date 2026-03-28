@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import type { TimelineEntry } from "@/types";
 import { cn } from "@/lib/cn";
+import { REGION_CURRENCY } from "@/lib/constants";
 
 interface TimelineNodeProps {
   entry: TimelineEntry;
@@ -98,10 +99,15 @@ function NodeContent({ entry, align }: { entry: TimelineEntry; align: "left" | "
       {(entry.avg_annual_income > 0 || entry.life_expectancy > 0) && (
         <div className="mt-3 border-t border-white/5 pt-2 font-mono text-[10px] text-white/25">
           {entry.avg_annual_income > 0 && (
-            <span>年収: ¥{entry.avg_annual_income.toLocaleString()}</span>
+            <span>
+              {(() => {
+                const cur = Object.values(REGION_CURRENCY).find((c) => c.code === entry.currency);
+                return `${cur?.symbol ?? ""}${entry.avg_annual_income.toLocaleString()} ${entry.currency}`;
+              })()}
+            </span>
           )}
           {entry.avg_annual_income > 0 && entry.life_expectancy > 0 && <span> | </span>}
-          {entry.life_expectancy > 0 && <span>平均寿命: {entry.life_expectancy}歳</span>}
+          {entry.life_expectancy > 0 && <span>Life Exp: {entry.life_expectancy}</span>}
         </div>
       )}
     </GlassPanel>
