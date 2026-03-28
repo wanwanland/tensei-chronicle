@@ -1,13 +1,66 @@
-import { getSupabase } from "@/lib/supabase";
+import type { Metadata } from "next";
+import { getSimulationById } from "@/lib/simulation";
 import { Timeline } from "@/components/timeline/Timeline";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { HudBar } from "./HudBar";
-import type { SimulationResult, TimelineEntry } from "@/types";
 import { User, MapPin, Calendar } from "lucide-react";
 import Link from "next/link";
 
 interface ResultPageProps {
   searchParams: Promise<{ id?: string }>;
+}
+
+export async function generateMetadata({ searchParams }: ResultPageProps): Promise<Metadata> {
+  const { id } = await searchParams;
+  if (!id) return { title: "結果が見つかりません | 転生年表" };
+
+  const result = await getSimulationById(id);
+  if (!result) return { title: "結果が見つかりません | 転生年表" };
+
+  const genderLabel = result.input.gender === "male" ? "男性" : "女性";
+  const { birth_year, region } = result.input;
+
+  // Pick key life highlights for the description
+  const highlights = result.timeline
+    .filter((e) => e.life_events.length > 0)
+    .slice(0, 5)
+    .map((e) => `${e.age}歳: ${e.life_events[0]}`)
+    .join(" → ");
+
+  const bigEvents = result.timeline
+    .flatMap((e) => e.social_events)
+    .slice(0, 3)
+    .map((e) => e.title);
+
+  const title = `${birth_year}年 ${region}生まれ ${genderLabel}の人生 | 転生年表`;
+  const description = `${birth_year}年に${region}で${genderLabel}として生まれた人生をシミュレーション。${highlights}。${bigEvents.length > 0 ? `時代の出来事: ${bigEvents.join("、")}` : ""}`;
+
+  const ogImageUrl = new URL(`/api/og`, process.env.NEXT_PUBLIC_SITE_URL || "https://tensei-chronicle.vercel.app");
+  ogImageUrl.searchParams.set("id", id);
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: [
+        {
+          url: ogImageUrl.toString(),
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl.toString()],
+    },
+  };
 }
 
 export default async function ResultPage({ searchParams }: ResultPageProps) {
@@ -26,28 +79,7 @@ export default async function ResultPage({ searchParams }: ResultPageProps) {
     );
   }
 
-  let result: SimulationResult | null = null;
-
-  try {
-    const supabase = getSupabase();
-    const { data } = await supabase
-      .from("life_simulations")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (data) {
-      const resultData = data.result_data as { input: SimulationResult["input"]; timeline: TimelineEntry[] };
-      result = {
-        id: data.id,
-        input: resultData.input,
-        timeline: resultData.timeline,
-        created_at: data.created_at,
-      };
-    }
-  } catch {
-    // Supabase not configured or error
-  }
+  const result = await getSimulationById(id);
 
   if (!result) {
     return (

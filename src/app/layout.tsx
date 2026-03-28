@@ -10,9 +10,24 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tensei-chronicle.vercel.app";
+
 export const metadata: Metadata = {
   title: "転生年表 | Tensei Chronicle",
   description: "もしも別の時代、別の場所、別の性別で生まれていたら——あなたのIFの人生をシミュレーション",
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    title: "転生年表 | Tensei Chronicle",
+    description: "もしも別の時代に生まれていたら——あなたのIFの人生をシミュレーション",
+    type: "website",
+    images: [{ url: "/api/og", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "転生年表 | Tensei Chronicle",
+    description: "もしも別の時代に生まれていたら——あなたのIFの人生をシミュレーション",
+    images: ["/api/og"],
+  },
 };
 
 export default function RootLayout({
