@@ -16,8 +16,10 @@ export function SummaryDashboard({ timeline, region }: SummaryDashboardProps) {
 
   const first = timeline[0];
   const last = timeline[timeline.length - 1];
-  const currency = Object.values(REGION_CURRENCY).find((c) => c.code === first.currency);
-  const symbol = currency?.symbol ?? "";
+  const currencyCode = first.currency;
+  const currencyInfo = Object.values(REGION_CURRENCY).find((c) => c.code === currencyCode);
+  const symbol = currencyInfo?.symbol ?? "";
+  const isJPY = currencyCode === "JPY";
 
   // Stats
   const peakIncome = Math.max(...timeline.map((e) => e.avg_annual_income));
@@ -25,6 +27,11 @@ export function SummaryDashboard({ timeline, region }: SummaryDashboardProps) {
   const incomeMultiplier = first.avg_annual_income > 0
     ? (peakIncome / first.avg_annual_income).toFixed(1)
     : "—";
+
+  const firstIncomeDisplay = formatIncome(first.avg_annual_income, symbol, currencyCode);
+  const peakIncomeDisplay = formatIncome(peakIncome, symbol, currencyCode);
+  const firstJpyNote = !isJPY ? `(${formatJPY(toJPY(first.avg_annual_income, currencyCode, first.year))})` : "";
+  const peakJpyNote = !isJPY ? `(${formatJPY(toJPY(peakIncome, currencyCode, peakIncomeEntry?.year ?? last.year))})` : "";
 
   const totalEvents = timeline.reduce(
     (sum, e) => sum + e.social_events.length + e.regional_news.length,
@@ -54,9 +61,9 @@ export function SummaryDashboard({ timeline, region }: SummaryDashboardProps) {
         <StatCard
           icon={<TrendingUp className="h-4 w-4" />}
           label="年収"
-          fromValue={`${symbol}${formatCompact(first.avg_annual_income)}`}
-          toValue={`${symbol}${formatCompact(peakIncome)}`}
-          subtext={`${incomeMultiplier}倍 (${peakIncomeEntry?.age ?? 0}歳時)`}
+          fromValue={`${firstIncomeDisplay}${firstJpyNote ? ` ${firstJpyNote}` : ""}`}
+          toValue={`${peakIncomeDisplay}${peakJpyNote ? ` ${peakJpyNote}` : ""}`}
+          subtext={`${incomeMultiplier}倍 (${peakIncomeEntry?.age ?? 0}歳時ピーク)`}
           color="magenta"
           delay={0.1}
         />
@@ -187,11 +194,47 @@ function StatCard({
   );
 }
 
-function formatCompact(num: number): string {
-  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
-  if (num >= 10_000) return `${(num / 1_000).toFixed(0)}K`;
-  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
-  return num.toLocaleString();
+// Format income in human-readable Japanese-friendly units
+function formatIncome(num: number, symbol: string, currency: string): string {
+  if (num === 0) return "—";
+
+  if (currency === "JPY") {
+    if (num >= 100_000_000) return `${symbol}${(num / 100_000_000).toFixed(1)}億`;
+    if (num >= 10_000) return `${symbol}${(num / 10_000).toFixed(0)}万`;
+    return `${symbol}${num.toLocaleString()}`;
+  }
+
+  // Non-JPY: use 万/億 style for large numbers, otherwise show full
+  if (num >= 1_000_000) return `${symbol}${(num / 1_000_000).toFixed(1)}百万`;
+  if (num >= 1_000) return `${symbol}${num.toLocaleString()}`;
+  return `${symbol}${num}`;
+}
+
+// Format as Japanese Yen with 万 unit
+function formatJPY(jpy: number): string {
+  if (jpy <= 0) return "";
+  if (jpy >= 100_000_000) return `約${(jpy / 100_000_000).toFixed(1)}億円`;
+  if (jpy >= 10_000) return `約${Math.round(jpy / 10_000)}万円`;
+  return `約${Math.round(jpy).toLocaleString()}円`;
+}
+
+// Approximate conversion to JPY (rough 2024 rates for intuitive comparison)
+const JPY_RATES: Record<string, number> = {
+  USD: 150,
+  GBP: 190,
+  EUR: 163,
+  CNY: 21,
+  INR: 1.8,
+  BRL: 30,
+  NGN: 0.09,
+  AUD: 98,
+  RUB: 1.6,
+  JPY: 1,
+};
+
+function toJPY(amount: number, currency: string, _year?: number): number {
+  const rate = JPY_RATES[currency] ?? 1;
+  return amount * rate;
 }
 
 function selectTopEvents(timeline: TimelineEntry[]) {
