@@ -95,25 +95,25 @@ export function TimelineNode({ entry, index, gender, region }: TimelineNodeProps
 function NodeContent({ entry, align, gender, region }: { entry: TimelineEntry; align: "left" | "right"; gender: string; region: string }) {
   return (
     <GlassPanel className={cn("p-4", align === "right" ? "md:text-right" : "text-left")}>
-      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-neon-cyan/50">
+      <p className="mb-2 font-mono text-xs uppercase tracking-widest text-neon-cyan/70">
         {entry.year} / {entry.era_name}
       </p>
 
       {/* Life events */}
       {entry.life_events.map((evt, i) => (
-        <p key={i} className="mb-1 font-mono text-sm font-bold text-neon-magenta">
+        <p key={i} className="mb-1 font-mono text-base font-bold text-neon-magenta">
           {evt}
         </p>
       ))}
 
       {/* Social events */}
       {entry.social_events.map((evt) => (
-        <div key={evt.id} className="mt-2">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-neon-cyan/70">
+        <div key={evt.id} className="mt-2" role="article" aria-label={`${entry.year}年: ${evt.title}`}>
+          <span className="font-mono text-xs uppercase tracking-wider text-neon-cyan/80">
             {evt.category}
           </span>
-          <p className="text-sm text-white/80">{evt.title}</p>
-          <p className="text-xs text-white/40">{evt.description}</p>
+          <p className="text-sm text-white/90">{evt.title}</p>
+          <p className="text-xs text-white/60">{evt.description}</p>
           <ReactionBubble
             input={{
               year: entry.year,
@@ -135,11 +135,11 @@ function NodeContent({ entry, align, gender, region }: { entry: TimelineEntry; a
 
       {/* Regional news */}
       {entry.regional_news.map((news) => (
-        <div key={news.id} className="mt-2 border-l-2 border-neon-magenta/30 pl-2">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-neon-magenta/60">
+        <div key={news.id} className="mt-2 border-l-2 border-neon-magenta/40 pl-2" role="article" aria-label={`${news.topic}: ${news.news_detail}`}>
+          <span className="font-mono text-xs uppercase tracking-wider text-neon-magenta/70">
             {news.topic}
           </span>
-          <p className="text-xs text-white/50">{news.news_detail}</p>
+          <p className="text-xs text-white/70">{news.news_detail}</p>
           <ReactionBubble
             input={{
               year: entry.year,
@@ -161,7 +161,7 @@ function NodeContent({ entry, align, gender, region }: { entry: TimelineEntry; a
 
       {/* Income & life expectancy */}
       {(entry.avg_annual_income > 0 || entry.life_expectancy > 0) && (
-        <div className="mt-3 border-t border-white/5 pt-2 font-mono text-[10px] text-white/25">
+        <div className="mt-3 border-t border-white/10 pt-2 font-mono text-[11px] text-white/40">
           {entry.avg_annual_income > 0 && (
             <span>
               {(() => {

@@ -40,10 +40,12 @@ export default function RootLayout({
       <body className={`${geistMono.variable} min-h-screen bg-black font-mono text-white antialiased`}>
         <CyberpunkBackground />
         <ScanlineOverlay />
-        <div className="glitch-bar-overlay" />
-        <div className="screen-glitch relative z-10">
+        <div className="relative z-10">
+          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-black focus:p-4 focus:text-neon-cyan">
+            メインコンテンツへスキップ
+          </a>
           <Header />
-          <main>{children}</main>
+          <main id="main-content" role="main">{children}</main>
         </div>
       </body>
     </html>
