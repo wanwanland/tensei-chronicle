@@ -3,6 +3,7 @@ import { Geist_Mono } from "next/font/google";
 import { CyberpunkBackground } from "@/components/layout/CyberpunkBackground";
 import { ScanlineOverlay } from "@/components/ui/ScanlineOverlay";
 import { Header } from "@/components/layout/Header";
+import { AccessibilityBar } from "@/components/ui/AccessibilityBar";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -47,6 +48,7 @@ export default function RootLayout({
           <Header />
           <main id="main-content" role="main">{children}</main>
         </div>
+        <AccessibilityBar />
       </body>
     </html>
   );

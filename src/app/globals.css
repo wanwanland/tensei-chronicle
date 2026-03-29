@@ -101,6 +101,104 @@ body {
   z-index: -1;
 }
 
+/* Color mode: High Contrast */
+[data-color-mode="highcontrast"] {
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+  --color-neon-cyan: #00ffff;
+  --color-neon-magenta: #ff66ff;
+  --color-glass-bg: rgba(255, 255, 255, 0.1);
+  --color-glass-border: rgba(255, 255, 255, 0.3);
+}
+
+[data-color-mode="highcontrast"] body {
+  color: #ffffff;
+}
+
+[data-color-mode="highcontrast"] .text-white\/60,
+[data-color-mode="highcontrast"] .text-white\/70 {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-color-mode="highcontrast"] .text-white\/40,
+[data-color-mode="highcontrast"] .text-white\/50 {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Color mode: Light */
+[data-color-mode="light"] {
+  --color-background: #f5f5f5;
+  --color-foreground: #1a1a1a;
+  --color-neon-cyan: #0077aa;
+  --color-neon-magenta: #aa0066;
+  --color-glass-bg: rgba(255, 255, 255, 0.7);
+  --color-glass-border: rgba(0, 0, 0, 0.15);
+}
+
+[data-color-mode="light"] body {
+  background: #f5f5f5 !important;
+  color: #1a1a1a;
+}
+
+[data-color-mode="light"] .bg-black {
+  background-color: #f5f5f5 !important;
+}
+
+[data-color-mode="light"] .bg-black\/60 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-color-mode="light"] .text-white {
+  color: #1a1a1a !important;
+}
+
+[data-color-mode="light"] .text-white\/90,
+[data-color-mode="light"] .text-white\/80,
+[data-color-mode="light"] .text-white\/70,
+[data-color-mode="light"] .text-white\/60 {
+  color: rgba(26, 26, 26, 0.85) !important;
+}
+
+[data-color-mode="light"] .text-white\/50,
+[data-color-mode="light"] .text-white\/40,
+[data-color-mode="light"] .text-white\/30,
+[data-color-mode="light"] .text-white\/25,
+[data-color-mode="light"] .text-white\/20 {
+  color: rgba(26, 26, 26, 0.6) !important;
+}
+
+[data-color-mode="light"] .text-neon-cyan {
+  color: #0077aa !important;
+}
+
+[data-color-mode="light"] .text-neon-magenta {
+  color: #aa0066 !important;
+}
+
+[data-color-mode="light"] .border-white\/10,
+[data-color-mode="light"] .border-white\/15 {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+[data-color-mode="light"] .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-color-mode="light"] .animated-grid {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0, 119, 170, 0.08) 0px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, rgba(0, 119, 170, 0.08) 0px, transparent 1px, transparent 40px);
+}
+
+[data-color-mode="light"] .scanline-overlay {
+  display: none;
+}
+
+[data-color-mode="light"] .glitch-text::before,
+[data-color-mode="light"] .glitch-text::after {
+  display: none;
+}
+
 /* Accessibility: respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .animated-grid,
