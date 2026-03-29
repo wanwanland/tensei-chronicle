@@ -274,6 +274,35 @@ export async function simulate(input: SimulationInput): Promise<SimulationResult
     });
   }
 
+  // If life ended before 2025, add a death entry
+  if (endYear < 2025) {
+    const deathAge = endYear - birth_year;
+    const deathEra = eraMap.get(endYear);
+    const pattern = LIFE_PATTERNS[region] || LIFE_PATTERNS["日本"];
+    const deathLabel = region === "日本" ? "永眠" :
+      region === "フランス" ? "Décès" :
+      region === "中国" ? "逝世" :
+      region === "インド" ? "निधन (Death)" :
+      region === "ブラジル" ? "Falecimento" :
+      region === "ロシア" ? "Кончина (Death)" :
+      region === "ソマリア" ? "Geeriyoodii (Death)" :
+      "Death";
+
+    timeline.push({
+      age: deathAge,
+      year: endYear,
+      era_name: deathEra?.era_name ?? `${endYear}`,
+      life_events: [`${deathLabel} — ${deathAge}歳`],
+      social_events: [],
+      regional_news: [],
+      avg_annual_income: deathEra?.avg_annual_income ?? 0,
+      currency: deathEra?.currency ?? defaultCurrency,
+      life_expectancy: deathEra?.life_expectancy ?? 0,
+      big_mac_price: deathEra?.big_mac_price ?? null,
+      median_life_expectancy: deathEra?.median_life_expectancy ?? null,
+    });
+  }
+
   const { data: saved } = await supabase
     .from("life_simulations")
     .insert({
