@@ -7,6 +7,7 @@ import type { TimelineEntry } from "@/types";
 import { cn } from "@/lib/cn";
 import { REGION_CURRENCY } from "@/lib/constants";
 import { ReactionBubble } from "./ReactionBubble";
+import { MediaLinks } from "./MediaLinks";
 
 interface TimelineNodeProps {
   entry: TimelineEntry;
@@ -123,6 +124,12 @@ function NodeContent({ entry, align, gender, region }: { entry: TimelineEntry; a
               eventDescription: evt.description,
             }}
           />
+          <MediaLinks
+            year={entry.year}
+            region={region}
+            eventTitle={evt.title}
+            eventDescription={evt.description}
+          />
         </div>
       ))}
 
@@ -142,6 +149,12 @@ function NodeContent({ entry, align, gender, region }: { entry: TimelineEntry; a
               eventTitle: news.topic,
               eventDescription: news.news_detail,
             }}
+          />
+          <MediaLinks
+            year={entry.year}
+            region={region}
+            eventTitle={news.news_detail}
+            eventDescription={news.topic}
           />
         </div>
       ))}
