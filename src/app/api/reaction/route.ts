@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   try {
     const reactions = await generateJSON<string[]>(prompt, 500);
     if (!reactions || !Array.isArray(reactions) || reactions.length === 0) {
-      return NextResponse.json({ error: "Generation failed" }, { status: 500 });
+      return NextResponse.json({ error: "Generation failed - no valid JSON returned" }, { status: 500 });
     }
 
     const result = reactions.slice(0, 3);

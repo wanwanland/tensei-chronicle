@@ -52,9 +52,10 @@ async function callGemini(prompt: string, maxTokens: number): Promise<string> {
   const genAI = getGemini();
   if (!genAI) throw new Error("GEMINI_API_KEY not set");
 
+  // Gemini 2.5 flash uses thinking tokens, so we need more output budget
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
-    generationConfig: { maxOutputTokens: maxTokens },
+    generationConfig: { maxOutputTokens: Math.max(maxTokens * 4, 2048) },
   });
 
   const result = await model.generateContent(prompt);
@@ -77,7 +78,9 @@ export async function generateText(prompt: string, maxTokens: number = 500): Pro
 
 export async function generateJSON<T>(prompt: string, maxTokens: number = 500): Promise<T | null> {
   const text = await generateText(prompt, maxTokens);
-  const jsonMatch = text.match(/\[[\s\S]*?\]/);
+  // Strip markdown code blocks that Gemini often wraps responses in
+  const cleaned = text.replace(/```(?:json)?\s*/g, "").replace(/```/g, "");
+  const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
   if (!jsonMatch) return null;
   try {
     return JSON.parse(jsonMatch[0]) as T;
