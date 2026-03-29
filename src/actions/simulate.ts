@@ -132,6 +132,26 @@ const LIFE_PATTERNS: Record<string, LifePattern> = {
       halfLife: "Середина жизни", retirement: "Выход на пенсию",
     },
   },
+  "南アフリカ": {
+    schoolStart: 6, middleSchool: 13, highSchool: 15, university: 18, universityEnd: 22, workStart: 16,
+    marriageMale: [27, 32], marriageFemale: [24, 28], firstChildOffset: 2, retirement: [60, 65],
+    milestoneLabels: {
+      birth: "Born", schoolStart: "Primary School", middleSchool: "High School", highSchool: "Matric Year",
+      university: "Enter University", universityEnd: "Graduation", work: "Start Working",
+      marriage: "Marriage", firstChild: "First Child Born", midCareer: "Mid-Career Shift",
+      halfLife: "Halfway Point", retirement: "Retirement",
+    },
+  },
+  "ソマリア": {
+    schoolStart: 7, middleSchool: 13, highSchool: 16, university: 18, universityEnd: 22, workStart: 14,
+    marriageMale: [22, 26], marriageFemale: [16, 20], firstChildOffset: 1, retirement: [55, 55],
+    milestoneLabels: {
+      birth: "Dhalasho (Birth)", schoolStart: "Dugsi / Primary School", middleSchool: "Secondary School", highSchool: "High School",
+      university: "Enter University", universityEnd: "Graduation", work: "Shaqo (Start Working)",
+      marriage: "Guur (Marriage)", firstChild: "Cunug Koowaad (First Child)", midCareer: "Career Shift",
+      halfLife: "Halfway Point", retirement: "Hawl-gabid (Retirement)",
+    },
+  },
 };
 
 function generateLifeEvents(age: number, year: number, gender: string, region: string): string[] {

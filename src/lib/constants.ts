@@ -15,6 +15,8 @@ export const REGION_OPTIONS = [
   { value: "インド", label: "🇮🇳 インド" },
   { value: "ブラジル", label: "🇧🇷 ブラジル" },
   { value: "ナイジェリア", label: "🇳🇬 ナイジェリア" },
+  { value: "南アフリカ", label: "🇿🇦 南アフリカ" },
+  { value: "ソマリア", label: "🇸🇴 ソマリア" },
   { value: "オーストラリア", label: "🇦🇺 オーストラリア" },
   { value: "ロシア", label: "🇷🇺 ロシア" },
 ] as const;
@@ -28,6 +30,8 @@ export const REGION_CURRENCY: Record<string, { symbol: string; code: string }> =
   "インド": { symbol: "₹", code: "INR" },
   "ブラジル": { symbol: "R$", code: "BRL" },
   "ナイジェリア": { symbol: "₦", code: "NGN" },
+  "南アフリカ": { symbol: "R", code: "ZAR" },
+  "ソマリア": { symbol: "Sh", code: "SOS" },
   "オーストラリア": { symbol: "A$", code: "AUD" },
   "ロシア": { symbol: "₽", code: "RUB" },
 };

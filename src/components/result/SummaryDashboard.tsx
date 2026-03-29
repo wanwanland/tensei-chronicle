@@ -259,6 +259,8 @@ const JPY_RATES: Record<string, number> = {
   INR: 1.8,
   BRL: 30,
   NGN: 0.09,
+  ZAR: 8.2,
+  SOS: 0.026,
   AUD: 98,
   RUB: 1.6,
   JPY: 1,
@@ -266,7 +268,7 @@ const JPY_RATES: Record<string, number> = {
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   JPY: "¥", USD: "$", GBP: "£", EUR: "€", FRF: "₣",
-  CNY: "¥", INR: "₹", BRL: "R$", NGN: "₦", AUD: "A$", RUB: "₽",
+  CNY: "¥", INR: "₹", BRL: "R$", NGN: "₦", ZAR: "R", SOS: "Sh", AUD: "A$", RUB: "₽",
 };
 
 function currencySymbol(code: string): string {
