@@ -6,9 +6,11 @@ import { TimelineConnector } from "./TimelineConnector";
 
 interface TimelineProps {
   entries: TimelineEntry[];
+  gender: string;
+  region: string;
 }
 
-export function Timeline({ entries }: TimelineProps) {
+export function Timeline({ entries, gender, region }: TimelineProps) {
   return (
     <div className="relative mx-auto max-w-4xl px-4 py-12">
       {/* Central vertical line - left on mobile, center on desktop */}
@@ -16,7 +18,7 @@ export function Timeline({ entries }: TimelineProps) {
 
       {entries.map((entry, i) => (
         <div key={entry.year}>
-          <TimelineNode entry={entry} index={i} />
+          <TimelineNode entry={entry} index={i} gender={gender} region={region} />
           {i < entries.length - 1 && <TimelineConnector />}
         </div>
       ))}

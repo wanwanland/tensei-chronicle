@@ -6,13 +6,16 @@ import { GlassPanel } from "@/components/ui/GlassPanel";
 import type { TimelineEntry } from "@/types";
 import { cn } from "@/lib/cn";
 import { REGION_CURRENCY } from "@/lib/constants";
+import { ReactionBubble } from "./ReactionBubble";
 
 interface TimelineNodeProps {
   entry: TimelineEntry;
   index: number;
+  gender: string;
+  region: string;
 }
 
-export function TimelineNode({ entry, index }: TimelineNodeProps) {
+export function TimelineNode({ entry, index, gender, region }: TimelineNodeProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const isLeft = index % 2 === 0;
@@ -39,7 +42,7 @@ export function TimelineNode({ entry, index }: TimelineNodeProps) {
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <NodeContent entry={entry} align="left" />
+            <NodeContent entry={entry} align="left" gender={gender} region={region} />
           </motion.div>
         </div>
       </div>
@@ -54,7 +57,7 @@ export function TimelineNode({ entry, index }: TimelineNodeProps) {
               animate={isInView ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              <NodeContent entry={entry} align="right" />
+              <NodeContent entry={entry} align="right" gender={gender} region={region} />
             </motion.div>
           )}
         </div>
@@ -79,7 +82,7 @@ export function TimelineNode({ entry, index }: TimelineNodeProps) {
               animate={isInView ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              <NodeContent entry={entry} align="left" />
+              <NodeContent entry={entry} align="left" gender={gender} region={region} />
             </motion.div>
           )}
         </div>
@@ -88,7 +91,7 @@ export function TimelineNode({ entry, index }: TimelineNodeProps) {
   );
 }
 
-function NodeContent({ entry, align }: { entry: TimelineEntry; align: "left" | "right" }) {
+function NodeContent({ entry, align, gender, region }: { entry: TimelineEntry; align: "left" | "right"; gender: string; region: string }) {
   return (
     <GlassPanel className={cn("p-4", align === "right" ? "md:text-right" : "text-left")}>
       <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-neon-cyan/50">
@@ -110,6 +113,16 @@ function NodeContent({ entry, align }: { entry: TimelineEntry; align: "left" | "
           </span>
           <p className="text-sm text-white/80">{evt.title}</p>
           <p className="text-xs text-white/40">{evt.description}</p>
+          <ReactionBubble
+            input={{
+              year: entry.year,
+              age: entry.age,
+              gender,
+              region,
+              eventTitle: evt.title,
+              eventDescription: evt.description,
+            }}
+          />
         </div>
       ))}
 
@@ -120,6 +133,16 @@ function NodeContent({ entry, align }: { entry: TimelineEntry; align: "left" | "
             {news.topic}
           </span>
           <p className="text-xs text-white/50">{news.news_detail}</p>
+          <ReactionBubble
+            input={{
+              year: entry.year,
+              age: entry.age,
+              gender,
+              region,
+              eventTitle: news.topic,
+              eventDescription: news.news_detail,
+            }}
+          />
         </div>
       ))}
 

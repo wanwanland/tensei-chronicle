@@ -124,7 +124,7 @@ export default async function ResultPage({ searchParams }: ResultPageProps) {
 
       <SummaryDashboard timeline={result.timeline} region={result.input.region} />
 
-      <Timeline entries={result.timeline} />
+      <Timeline entries={result.timeline} gender={result.input.gender} region={result.input.region} />
 
       <div className="mx-auto mt-16 max-w-lg px-4">
         <p className="mb-6 text-center font-mono text-sm text-white/40">
