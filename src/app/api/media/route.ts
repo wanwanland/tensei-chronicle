@@ -31,102 +31,63 @@ export async function POST(request: NextRequest) {
     // Cache miss
   }
 
-  // Step 1: Generate Wikipedia search queries (LLM-assisted or fallback)
-  let queries: string[] = [];
+  // Step 1: LLMで正確なWikipedia記事タイトルを推測
+  let articleTitles: Array<{ lang: string; title: string }> = [];
 
   if (isLLMAvailable()) {
     try {
-      const prompt = `以下の歴史的出来事について、Wikipedia記事を検索するための最適なクエリを生成してください。
+      const prompt = `あなたはWikipediaの専門家です。以下の歴史的出来事に直接該当するWikipedia記事の正確なタイトルを教えてください。
 
 出来事: ${eventTitle} (${year}年, ${region})
 詳細: ${eventDescription}
 
 ルール:
-- 日本語Wikipedia用のクエリを2つ、英語Wikipedia用のクエリを2つ生成
-- Wikipediaの記事タイトルに近い具体的な名称を使う
-- JSON配列で出力: [{"lang":"ja","query":"..."},{"lang":"en","query":"..."}]のみ出力`;
+- Wikipediaに実在する可能性が高い記事タイトルを正確に推測する
+- 禁止: 国名のみ(例:「ナイジェリア」)、年のみ(例:「1960年」)、無関係な記事
+- その出来事そのものを直接解説する記事のみ
+- 例: 「ナイジェリア独立」→ ja:「ナイジェリアの歴史」, en:「History of Nigeria」
+- 例: 「東京オリンピック 1964」→ ja:「1964年東京オリンピック」, en:「1964 Summer Olympics」
+- 日本語版2つ、英語版2つ（確実に存在すると思われるもの）
+- JSON配列のみ出力: [{"lang":"ja","title":"記事タイトル"},{"lang":"en","title":"Article Title"}]`;
 
-      const parsed = await generateJSON<Array<{ lang: string; query: string }>>(prompt, 300);
+      const parsed = await generateJSON<Array<{ lang: string; title: string }>>(prompt, 500);
       if (parsed) {
-        queries = parsed.map((q) => `${q.lang}:${q.query}`);
+        articleTitles = parsed;
       }
     } catch {
-      // Fall back to direct search
+      // Fallback below
     }
   }
 
-  if (queries.length === 0) {
-    queries = [`ja:${eventTitle}`, `en:${eventTitle} ${year}`];
+  // Fallback
+  if (articleTitles.length === 0) {
+    articleTitles = [
+      { lang: "ja", title: eventTitle },
+      { lang: "en", title: `${eventTitle} ${year}` },
+    ];
   }
 
-  // Step 2: Search Wikipedia
+  // Step 2: 各タイトルでWikipedia記事を直接取得（検索ではなくダイレクトアクセス）
   const results: MediaLink[] = [];
   const seenUrls = new Set<string>();
 
-  for (const q of queries) {
+  for (const { lang, title } of articleTitles) {
     if (results.length >= 3) break;
-
-    const [lang, query] = q.includes(":") ? [q.split(":")[0], q.slice(q.indexOf(":") + 1)] : ["ja", q];
     const wikiLang = lang === "en" ? "en" : "ja";
 
-    try {
-      const searchUrl = `https://${wikiLang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=2&format=json&origin=*`;
-      const searchRes = await fetch(searchUrl, {
-        headers: { "User-Agent": "TenseiChronicle/1.0" },
-        signal: AbortSignal.timeout(5000),
-      });
-
-      if (!searchRes.ok) continue;
-      const searchData = await searchRes.json();
-      const searchResults = searchData?.query?.search ?? [];
-
-      for (const sr of searchResults) {
-        if (results.length >= 3) break;
-
-        const pageTitle = sr.title as string;
-        const pageUrl = `https://${wikiLang}.wikipedia.org/wiki/${encodeURIComponent(pageTitle.replace(/ /g, "_"))}`;
-
-        if (seenUrls.has(pageUrl)) continue;
-        seenUrls.add(pageUrl);
-
-        try {
-          const summaryUrl = `https://${wikiLang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
-          const summaryRes = await fetch(summaryUrl, {
-            headers: { "User-Agent": "TenseiChronicle/1.0" },
-            signal: AbortSignal.timeout(5000),
-          });
-
-          if (!summaryRes.ok) {
-            results.push({
-              title: pageTitle,
-              url: pageUrl,
-              thumbnail: null,
-              description: (sr.snippet as string).replace(/<[^>]+>/g, "").slice(0, 120),
-              source: wikiLang === "ja" ? "wikipedia_ja" : "wikipedia_en",
-            });
-            continue;
-          }
-
-          const summary = await summaryRes.json();
-          results.push({
-            title: summary.title ?? pageTitle,
-            url: summary.content_urls?.desktop?.page ?? pageUrl,
-            thumbnail: summary.thumbnail?.source ?? null,
-            description: (summary.extract ?? "").slice(0, 150),
-            source: wikiLang === "ja" ? "wikipedia_ja" : "wikipedia_en",
-          });
-        } catch {
-          results.push({
-            title: pageTitle,
-            url: pageUrl,
-            thumbnail: null,
-            description: "",
-            source: wikiLang === "ja" ? "wikipedia_ja" : "wikipedia_en",
-          });
-        }
-      }
-    } catch {
+    // まず直接記事取得を試みる
+    const directResult = await fetchWikiSummary(wikiLang, title);
+    if (directResult && !seenUrls.has(directResult.url)) {
+      seenUrls.add(directResult.url);
+      results.push(directResult);
       continue;
+    }
+
+    // 直接取得失敗時のみ検索にフォールバック（上位1件のみ）
+    const searchResult = await searchWiki(wikiLang, `${title} ${year}`);
+    if (searchResult && !seenUrls.has(searchResult.url)) {
+      seenUrls.add(searchResult.url);
+      results.push(searchResult);
     }
   }
 
@@ -144,4 +105,49 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json(results);
+}
+
+async function fetchWikiSummary(lang: string, title: string): Promise<MediaLink | null> {
+  try {
+    const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "TenseiChronicle/1.0" },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    // disambiguation、not found、一般的すぎる記事は除外
+    if (data.type === "disambiguation" || data.type === "no-extract" || !data.extract) return null;
+
+    return {
+      title: data.title,
+      url: data.content_urls?.desktop?.page ?? `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+      thumbnail: data.thumbnail?.source ?? null,
+      description: (data.extract ?? "").slice(0, 150),
+      source: lang === "ja" ? "wikipedia_ja" : "wikipedia_en",
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function searchWiki(lang: string, query: string): Promise<MediaLink | null> {
+  try {
+    const searchUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=1&format=json&origin=*`;
+    const res = await fetch(searchUrl, {
+      headers: { "User-Agent": "TenseiChronicle/1.0" },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const sr = data?.query?.search?.[0];
+    if (!sr) return null;
+
+    // 検索結果の記事を直接取得してサムネイルを得る
+    return fetchWikiSummary(lang, sr.title);
+  } catch {
+    return null;
+  }
 }
