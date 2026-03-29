@@ -260,7 +260,7 @@ const JPY_RATES: Record<string, number> = {
   BRL: 30,
   NGN: 0.09,
   ZAR: 8.2,
-  SOS: 0.026,
+  SOS: 0.26,
   AUD: 98,
   RUB: 1.6,
   JPY: 1,
