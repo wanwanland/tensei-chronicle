@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getSimulationById } from "@/lib/simulation";
 import { Timeline } from "@/components/timeline/Timeline";
 import { GlassPanel } from "@/components/ui/GlassPanel";
+import { SummaryDashboard } from "@/components/result/SummaryDashboard";
 import { HudBar } from "./HudBar";
 import { User, MapPin, Calendar } from "lucide-react";
 import Link from "next/link";
@@ -119,6 +120,8 @@ export default async function ResultPage({ searchParams }: ResultPageProps) {
           </div>
         </GlassPanel>
       </div>
+
+      <SummaryDashboard timeline={result.timeline} region={result.input.region} />
 
       <Timeline entries={result.timeline} />
 
