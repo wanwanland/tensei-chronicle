@@ -53,7 +53,7 @@ async function callGemini(prompt: string, maxTokens: number): Promise<string> {
   if (!genAI) throw new Error("GEMINI_API_KEY not set");
 
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     generationConfig: { maxOutputTokens: maxTokens },
   });
 
