@@ -33,14 +33,21 @@ export function SummaryDashboard({ timeline, region }: SummaryDashboardProps) {
   const firstJpyNote = !isJPY ? `(${formatJPY(toJPY(first.avg_annual_income, currencyCode, first.year))})` : "";
   const peakJpyNote = !isJPY ? `(${formatJPY(toJPY(peakIncome, currencyCode, peakIncomeEntry?.year ?? last.year))})` : "";
 
-  // Hamburger price
+  // Hamburger price (currency may differ between birth year and now, e.g. FRF→EUR)
   const firstBurger = first.big_mac_price;
   const lastBurger = last.big_mac_price;
-  const burgerMultiplier = firstBurger && lastBurger && firstBurger > 0
-    ? (lastBurger / firstBurger).toFixed(1)
+  const firstBurgerCurrency = first.currency;
+  const lastBurgerCurrency = last.currency;
+  const firstBurgerSymbol = currencySymbol(firstBurgerCurrency);
+  const lastBurgerSymbol = currencySymbol(lastBurgerCurrency);
+  // For multiplier, convert both to JPY for fair comparison when currency changed
+  const firstBurgerJpy = firstBurger ? toJPY(firstBurger, firstBurgerCurrency) : 0;
+  const lastBurgerJpy = lastBurger ? toJPY(lastBurger, lastBurgerCurrency) : 0;
+  const burgerMultiplier = firstBurgerJpy > 0 && lastBurgerJpy > 0
+    ? (lastBurgerJpy / firstBurgerJpy).toFixed(1)
     : null;
-  const firstBurgerJpy = firstBurger && !isJPY ? toJPY(firstBurger, currencyCode) : null;
-  const lastBurgerJpy = lastBurger && !isJPY ? toJPY(lastBurger, currencyCode) : null;
+  const showFirstBurgerJpy = firstBurger && firstBurgerCurrency !== "JPY";
+  const showLastBurgerJpy = lastBurger && lastBurgerCurrency !== "JPY";
 
   // Median life expectancy
   const firstMedian = first.median_life_expectancy;
@@ -92,8 +99,8 @@ export function SummaryDashboard({ timeline, region }: SummaryDashboardProps) {
           <StatCard
             icon={<Beef className="h-4 w-4" />}
             label="ハンバーガー価格"
-            fromValue={`${symbol}${firstBurger}${firstBurgerJpy ? ` (${Math.round(firstBurgerJpy)}円)` : ""}`}
-            toValue={`${symbol}${lastBurger}${lastBurgerJpy ? ` (${Math.round(lastBurgerJpy)}円)` : ""}`}
+            fromValue={`${firstBurgerSymbol}${firstBurger}${showFirstBurgerJpy ? ` (${Math.round(firstBurgerJpy)}円)` : ""}`}
+            toValue={`${lastBurgerSymbol}${lastBurger}${showLastBurgerJpy ? ` (${Math.round(lastBurgerJpy)}円)` : ""}`}
             subtext={burgerMultiplier ? `${burgerMultiplier}倍に上昇` : undefined}
             color="cyan"
             delay={0.25}
@@ -247,6 +254,7 @@ const JPY_RATES: Record<string, number> = {
   USD: 150,
   GBP: 190,
   EUR: 163,
+  FRF: 25, // フランス・フラン (1 FRF ≈ 25 JPY)
   CNY: 21,
   INR: 1.8,
   BRL: 30,
@@ -255,6 +263,15 @@ const JPY_RATES: Record<string, number> = {
   RUB: 1.6,
   JPY: 1,
 };
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  JPY: "¥", USD: "$", GBP: "£", EUR: "€", FRF: "₣",
+  CNY: "¥", INR: "₹", BRL: "R$", NGN: "₦", AUD: "A$", RUB: "₽",
+};
+
+function currencySymbol(code: string): string {
+  return CURRENCY_SYMBOLS[code] ?? "";
+}
 
 function toJPY(amount: number, currency: string, _year?: number): number {
   const rate = JPY_RATES[currency] ?? 1;
