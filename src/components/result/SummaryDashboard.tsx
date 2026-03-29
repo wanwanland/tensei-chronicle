@@ -243,9 +243,14 @@ function selectTopEvents(timeline: TimelineEntry[]) {
   );
   if (allEvents.length <= 3) return allEvents;
 
-  // Pick events spread across different decades
+  // Prioritize region-specific events (region != null) over global ones
+  const regionEvents = allEvents.filter((e) => e.region != null);
+  const globalEvents = allEvents.filter((e) => e.region == null);
+
+  // Pick from different decades, preferring region-specific events
   const byDecade = new Map<number, typeof allEvents>();
-  for (const evt of allEvents) {
+  const source = regionEvents.length >= 3 ? regionEvents : allEvents;
+  for (const evt of source) {
     const decade = Math.floor(evt.year / 10) * 10;
     if (!byDecade.has(decade)) byDecade.set(decade, []);
     byDecade.get(decade)!.push(evt);
@@ -258,7 +263,20 @@ function selectTopEvents(timeline: TimelineEntry[]) {
   for (let i = 0; i < 3 && i * step < decades.length; i++) {
     const decade = decades[Math.min(i * step, decades.length - 1)];
     const events = byDecade.get(decade)!;
-    result.push(events[0]);
+    // Within the decade, prefer region-specific over global
+    const best = events.find((e) => e.region != null) ?? events[0];
+    result.push(best);
+  }
+
+  // If we still have global-only results, try to replace with region-specific from unused decades
+  if (result.some((r) => r.region == null) && regionEvents.length > 0) {
+    const usedYears = new Set(result.map((r) => r.year));
+    const unused = regionEvents.filter((e) => !usedYears.has(e.year));
+    for (let i = 0; i < result.length; i++) {
+      if (result[i].region == null && unused.length > 0) {
+        result[i] = unused.shift()!;
+      }
+    }
   }
 
   return result;
