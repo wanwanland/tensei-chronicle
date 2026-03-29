@@ -35,7 +35,7 @@ export async function generateMetadata({ searchParams }: ResultPageProps): Promi
   const title = `${birth_year}年 ${region}生まれ ${genderLabel}の人生 | 転生年表`;
   const description = `${birth_year}年に${region}で${genderLabel}として生まれた人生をシミュレーション。${highlights}。${bigEvents.length > 0 ? `時代の出来事: ${bigEvents.join("、")}` : ""}`;
 
-  const ogImageUrl = new URL(`/api/og`, process.env.NEXT_PUBLIC_SITE_URL || "https://tensei-chronicle.vercel.app");
+  const ogImageUrl = new URL(`/api/og`, process.env.NEXT_PUBLIC_SITE_URL || "https://app-be48400b-4f16-4b12-a577-5f823963167e.ingress.apprun.sakura.ne.jp");
   ogImageUrl.searchParams.set("id", id);
 
   return {

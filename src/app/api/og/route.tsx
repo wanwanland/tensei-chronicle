@@ -257,7 +257,7 @@ export async function GET(request: NextRequest) {
               あなたも別の時代に転生してみませんか？
             </span>
             <span style={{ fontSize: "13px", color: "rgba(0,243,255,0.3)", letterSpacing: "0.1em" }}>
-              tensei-chronicle.vercel.app
+              転生年表
             </span>
           </div>
         </div>

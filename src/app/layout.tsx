@@ -10,7 +10,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tensei-chronicle.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://app-be48400b-4f16-4b12-a577-5f823963167e.ingress.apprun.sakura.ne.jp";
 
 export const metadata: Metadata = {
   title: "転生年表 | Tensei Chronicle",
