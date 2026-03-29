@@ -92,7 +92,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(reactions.slice(0, 3));
   } catch (err) {
-    console.error("[reaction] API error:", err);
-    return NextResponse.json([], { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[reaction] API error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

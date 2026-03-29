@@ -42,7 +42,8 @@ export function ReactionBubble({ input }: ReactionBubbleProps) {
       if (res.status === 503) {
         setReactions(["（APIキーが未設定です）"]);
       } else if (!res.ok) {
-        setReactions(["（生成に失敗しました）"]);
+        const errData = await res.json().catch(() => ({}));
+        setReactions([`（生成エラー: ${errData.error ?? res.status}）`]);
       } else {
         const data = await res.json();
         setReactions(Array.isArray(data) && data.length > 0 ? data : ["（生成に失敗しました）"]);
