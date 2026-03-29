@@ -3,7 +3,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Loader2 } from "lucide-react";
-import { generateReaction, type ReactionInput } from "@/actions/reaction";
+
+export interface ReactionInput {
+  year: number;
+  age: number;
+  gender: string;
+  region: string;
+  eventTitle: string;
+  eventDescription: string;
+}
 
 interface ReactionBubbleProps {
   input: ReactionInput;
@@ -22,12 +30,17 @@ export function ReactionBubble({ input }: ReactionBubbleProps) {
 
     setOpen(true);
 
-    if (reactions) return; // Already loaded
+    if (reactions) return;
 
     setLoading(true);
     try {
-      const result = await generateReaction(input);
-      setReactions(result.length > 0 ? result : ["...考えがまとまらない"]);
+      const res = await fetch("/api/reaction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const data = await res.json();
+      setReactions(Array.isArray(data) && data.length > 0 ? data : ["...考えがまとまらない"]);
     } catch {
       setReactions(["...考えがまとまらない"]);
     } finally {
@@ -73,7 +86,6 @@ export function ReactionBubble({ input }: ReactionBubbleProps) {
                     transition={{ delay: i * 0.2, duration: 0.3 }}
                     className="relative rounded border border-neon-magenta/15 bg-neon-magenta/5 px-3 py-2"
                   >
-                    {/* Speech bubble triangle */}
                     <div className="absolute -top-1 left-3 h-2 w-2 rotate-45 border-l border-t border-neon-magenta/15 bg-neon-magenta/5" />
                     <p className="font-mono text-xs text-white/70">
                       <span className="mr-1 text-neon-magenta/40">💬</span>

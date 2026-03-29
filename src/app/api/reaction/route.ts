@@ -1,5 +1,4 @@
-"use server";
-
+import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabase } from "@/lib/supabase";
 
@@ -13,22 +12,12 @@ function getClient(): Anthropic | null {
   return _client;
 }
 
-export interface ReactionInput {
-  year: number;
-  age: number;
-  gender: string;
-  region: string;
-  eventTitle: string;
-  eventDescription: string;
-}
+export async function POST(request: NextRequest) {
+  const { year, age, gender, region, eventTitle, eventDescription } = await request.json();
 
-export async function generateReaction(input: ReactionInput): Promise<string[]> {
-  const { year, age, gender, region, eventTitle, eventDescription } = input;
-
-  // Create a cache key from the event + persona
   const eventKey = `${year}:${eventTitle}`;
 
-  // Check cache first
+  // Check cache
   try {
     const supabase = getSupabase();
     const { data: cached } = await supabase
@@ -38,20 +27,18 @@ export async function generateReaction(input: ReactionInput): Promise<string[]> 
       .eq("age", age)
       .eq("gender", gender)
       .eq("region", region)
-      .single();
+      .maybeSingle();
 
     if (cached?.reactions) {
-      return cached.reactions as string[];
+      return NextResponse.json(cached.reactions);
     }
   } catch {
-    // Cache miss, proceed to generate
+    // Cache miss
   }
 
-  // Generate via Claude API
   const client = getClient();
   if (!client) {
-    console.error("[reaction] No Anthropic client - ANTHROPIC_API_KEY missing?", !!process.env.ANTHROPIC_API_KEY);
-    return [];
+    return NextResponse.json([], { status: 503 });
   }
 
   const genderLabel = gender === "male" ? "男性" : "女性";
@@ -86,12 +73,12 @@ export async function generateReaction(input: ReactionInput): Promise<string[]> 
 
     const text = message.content[0].type === "text" ? message.content[0].text : "";
     const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return [];
+    if (!jsonMatch) return NextResponse.json([]);
 
     const reactions = JSON.parse(jsonMatch[0]) as string[];
-    if (!Array.isArray(reactions) || reactions.length === 0) return [];
+    if (!Array.isArray(reactions) || reactions.length === 0) return NextResponse.json([]);
 
-    // Cache the result
+    // Cache
     try {
       const supabase = getSupabase();
       await supabase.from("event_reactions").upsert(
@@ -99,12 +86,12 @@ export async function generateReaction(input: ReactionInput): Promise<string[]> 
         { onConflict: "event_key,age,gender,region" }
       );
     } catch {
-      // Cache failure is non-fatal
+      // Non-fatal
     }
 
-    return reactions.slice(0, 3);
+    return NextResponse.json(reactions.slice(0, 3));
   } catch (err) {
-    console.error("[reaction] Claude API error:", err);
-    return [];
+    console.error("[reaction] API error:", err);
+    return NextResponse.json([], { status: 500 });
   }
 }
