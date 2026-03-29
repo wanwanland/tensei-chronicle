@@ -109,8 +109,8 @@ export function SummaryDashboard({ timeline, region }: SummaryDashboardProps) {
         <StatCard
           icon={<Clock className="h-4 w-4" />}
           label="生きた時代"
-          fromValue={first.era_name}
-          toValue={last.era_name}
+          fromValue={`${first.era_name} (${first.year}年)`}
+          toValue={`${last.era_name} (${last.year}年)`}
           color="magenta"
           delay={0.3}
         />
