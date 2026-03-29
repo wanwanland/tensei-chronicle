@@ -1,6 +1,7 @@
 "use server";
 
 import { getSupabase } from "@/lib/supabase";
+import { enrichRegionalData } from "@/lib/enrichment";
 import type { SimulationInput, SimulationResult, TimelineEntry, SocialEvent, RegionalData, EraMaster } from "@/types";
 
 interface LifePattern {
@@ -207,18 +208,23 @@ export async function simulate(input: SimulationInput): Promise<SimulationResult
     eventMap.get(e.year)!.push(e);
   });
 
-  const regionalMap = new Map<number, RegionalData[]>();
-  (regionalData || []).forEach((r) => {
-    if (!regionalMap.has(r.year)) regionalMap.set(r.year, []);
-    regionalMap.get(r.year)!.push(r);
-  });
-
   // Build timeline
   const timeline: TimelineEntry[] = [];
   const firstEra = eraMap.values().next().value;
   const lifeExpectancy = firstEra?.life_expectancy ?? 75;
   const endYear = Math.min(birth_year + Math.ceil(lifeExpectancy), 2025);
   const defaultCurrency = firstEra?.currency ?? "USD";
+
+  // Enrich regional data: fill gaps via Wikidata + LLM
+  const enrichedRegionalData = await enrichRegionalData(
+    region, birth_year, endYear, regionalData || []
+  );
+
+  const regionalMap = new Map<number, RegionalData[]>();
+  enrichedRegionalData.forEach((r) => {
+    if (!regionalMap.has(r.year)) regionalMap.set(r.year, []);
+    regionalMap.get(r.year)!.push(r);
+  });
 
   for (let year = birth_year; year <= endYear; year++) {
     const age = year - birth_year;

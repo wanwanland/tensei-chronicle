@@ -23,6 +23,7 @@ export interface RegionalData {
   year: number;
   topic: string;
   news_detail: string;
+  source?: "static" | "wikidata_llm";
 }
 
 export interface SimulationInput {
