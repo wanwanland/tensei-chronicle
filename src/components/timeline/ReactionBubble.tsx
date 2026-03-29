@@ -39,10 +39,16 @@ export function ReactionBubble({ input }: ReactionBubbleProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input),
       });
-      const data = await res.json();
-      setReactions(Array.isArray(data) && data.length > 0 ? data : ["...考えがまとまらない"]);
+      if (res.status === 503) {
+        setReactions(["（APIキーが未設定です）"]);
+      } else if (!res.ok) {
+        setReactions(["（生成に失敗しました）"]);
+      } else {
+        const data = await res.json();
+        setReactions(Array.isArray(data) && data.length > 0 ? data : ["（生成に失敗しました）"]);
+      }
     } catch {
-      setReactions(["...考えがまとまらない"]);
+      setReactions(["（通信エラーが発生しました）"]);
     } finally {
       setLoading(false);
     }

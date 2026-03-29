@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
 
   const client = getClient();
   if (!client) {
-    return NextResponse.json([], { status: 503 });
+    console.error("[reaction] ANTHROPIC_API_KEY not set");
+    return NextResponse.json({ error: "API key not configured" }, { status: 503 });
   }
 
   const genderLabel = gender === "male" ? "男性" : "女性";
