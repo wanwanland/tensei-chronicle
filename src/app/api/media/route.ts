@@ -1,16 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { generateJSON, isLLMAvailable } from "@/lib/llm";
 import { getSupabase } from "@/lib/supabase";
-
-let _client: Anthropic | null = null;
-
-function getClient(): Anthropic | null {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-  if (!_client) {
-    _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  }
-  return _client;
-}
 
 interface MediaLink {
   title: string;
@@ -41,18 +31,12 @@ export async function POST(request: NextRequest) {
     // Cache miss
   }
 
-  // Step 1: Use Claude to generate optimal Wikipedia search queries
-  const client = getClient();
+  // Step 1: Generate Wikipedia search queries (LLM-assisted or fallback)
   let queries: string[] = [];
 
-  if (client) {
+  if (isLLMAvailable()) {
     try {
-      const message = await client.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 300,
-        messages: [{
-          role: "user",
-          content: `以下の歴史的出来事について、Wikipedia記事を検索するための最適なクエリを生成してください。
+      const prompt = `以下の歴史的出来事について、Wikipedia記事を検索するための最適なクエリを生成してください。
 
 出来事: ${eventTitle} (${year}年, ${region})
 詳細: ${eventDescription}
@@ -60,14 +44,10 @@ export async function POST(request: NextRequest) {
 ルール:
 - 日本語Wikipedia用のクエリを2つ、英語Wikipedia用のクエリを2つ生成
 - Wikipediaの記事タイトルに近い具体的な名称を使う
-- JSON配列で出力: [{"lang":"ja","query":"..."},{"lang":"en","query":"..."}]のみ出力`,
-        }],
-      });
+- JSON配列で出力: [{"lang":"ja","query":"..."},{"lang":"en","query":"..."}]のみ出力`;
 
-      const text = message.content[0].type === "text" ? message.content[0].text : "";
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]) as Array<{ lang: string; query: string }>;
+      const parsed = await generateJSON<Array<{ lang: string; query: string }>>(prompt, 300);
+      if (parsed) {
         queries = parsed.map((q) => `${q.lang}:${q.query}`);
       }
     } catch {
@@ -75,12 +55,11 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Fallback: use event title directly
   if (queries.length === 0) {
     queries = [`ja:${eventTitle}`, `en:${eventTitle} ${year}`];
   }
 
-  // Step 2: Search Wikipedia for each query
+  // Step 2: Search Wikipedia
   const results: MediaLink[] = [];
   const seenUrls = new Set<string>();
 
@@ -110,7 +89,6 @@ export async function POST(request: NextRequest) {
         if (seenUrls.has(pageUrl)) continue;
         seenUrls.add(pageUrl);
 
-        // Get page summary with thumbnail
         try {
           const summaryUrl = `https://${wikiLang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
           const summaryRes = await fetch(summaryUrl, {
@@ -152,7 +130,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Step 3: Cache results
+  // Step 3: Cache
   if (results.length > 0) {
     try {
       const supabase = getSupabase();

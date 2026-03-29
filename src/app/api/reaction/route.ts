@@ -1,20 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { generateJSON, isLLMAvailable } from "@/lib/llm";
 import { getSupabase } from "@/lib/supabase";
-
-let _client: Anthropic | null = null;
-
-function getClient(): Anthropic | null {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-  if (!_client) {
-    _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  }
-  return _client;
-}
 
 export async function POST(request: NextRequest) {
   const { year, age, gender, region, eventTitle, eventDescription } = await request.json();
-
   const eventKey = `${year}:${eventTitle}`;
 
   // Check cache
@@ -36,10 +25,8 @@ export async function POST(request: NextRequest) {
     // Cache miss
   }
 
-  const client = getClient();
-  if (!client) {
-    console.error("[reaction] ANTHROPIC_API_KEY not set");
-    return NextResponse.json({ error: "API key not configured" }, { status: 503 });
+  if (!isLLMAvailable()) {
+    return NextResponse.json({ error: "LLM API key not configured" }, { status: 503 });
   }
 
   const genderLabel = gender === "male" ? "男性" : "女性";
@@ -66,34 +53,27 @@ export async function POST(request: NextRequest) {
 ["つぶやき1", "つぶやき2", "つぶやき3"]`;
 
   try {
-    const message = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 500,
-      messages: [{ role: "user", content: prompt }],
-    });
+    const reactions = await generateJSON<string[]>(prompt, 500);
+    if (!reactions || !Array.isArray(reactions) || reactions.length === 0) {
+      return NextResponse.json({ error: "Generation failed" }, { status: 500 });
+    }
 
-    const text = message.content[0].type === "text" ? message.content[0].text : "";
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return NextResponse.json([]);
-
-    const reactions = JSON.parse(jsonMatch[0]) as string[];
-    if (!Array.isArray(reactions) || reactions.length === 0) return NextResponse.json([]);
+    const result = reactions.slice(0, 3);
 
     // Cache
     try {
       const supabase = getSupabase();
       await supabase.from("event_reactions").upsert(
-        { event_key: eventKey, age, gender, region, reactions },
+        { event_key: eventKey, age, gender, region, reactions: result },
         { onConflict: "event_key,age,gender,region" }
       );
     } catch {
       // Non-fatal
     }
 
-    return NextResponse.json(reactions.slice(0, 3));
+    return NextResponse.json(result);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[reaction] API error:", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

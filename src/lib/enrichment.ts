@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { fetchWikidataEvents } from "@/lib/wikidata";
 import { generateRegionalEntries } from "@/lib/enrichment-llm";
+import { isLLMAvailable } from "@/lib/llm";
 import type { RegionalData } from "@/types";
 
 export async function enrichRegionalData(
@@ -9,8 +10,8 @@ export async function enrichRegionalData(
   endYear: number,
   existingData: RegionalData[]
 ): Promise<RegionalData[]> {
-  // Skip if no API key configured
-  if (!process.env.ANTHROPIC_API_KEY) {
+  // Skip if no LLM API key configured
+  if (!isLLMAvailable()) {
     return existingData;
   }
 

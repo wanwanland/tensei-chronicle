@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { generateJSON, isLLMAvailable } from "./llm";
 import type { WikidataEvent } from "./wikidata";
 
 interface EnrichedEntry {
@@ -9,23 +9,12 @@ interface EnrichedEntry {
   source: string;
 }
 
-let _client: Anthropic | null = null;
-
-function getClient(): Anthropic | null {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-  if (!_client) {
-    _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  }
-  return _client;
-}
-
 export async function generateRegionalEntries(
   region: string,
   decadeStart: number,
   wikidataEvents: WikidataEvent[]
 ): Promise<EnrichedEntry[]> {
-  const client = getClient();
-  if (!client) return [];
+  if (!isLLMAvailable()) return [];
 
   const factsText = wikidataEvents
     .map((e) => `- ${e.year}年: ${e.label}${e.description ? ` (${e.description})` : ""}`)
@@ -50,17 +39,8 @@ ${factsText || `(Wikidataからのデータが少ないため、あなたの知�
 [{"year": 1960, "topic": "政治", "news_detail": "..."}]`;
 
   try {
-    const message = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    const text = message.content[0].type === "text" ? message.content[0].text : "";
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return [];
-
-    const parsed = JSON.parse(jsonMatch[0]) as Array<{ year: number; topic: string; news_detail: string }>;
+    const parsed = await generateJSON<Array<{ year: number; topic: string; news_detail: string }>>(prompt, 4096);
+    if (!parsed) return [];
 
     return parsed.map((entry) => ({
       region_name: region,
