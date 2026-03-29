@@ -247,6 +247,8 @@ export async function simulate(input: SimulationInput): Promise<SimulationResult
       avg_annual_income: era?.avg_annual_income ?? 0,
       currency: era?.currency ?? defaultCurrency,
       life_expectancy: era?.life_expectancy ?? 0,
+      big_mac_price: era?.big_mac_price ?? null,
+      median_life_expectancy: era?.median_life_expectancy ?? null,
     });
   }
 

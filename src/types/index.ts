@@ -6,6 +6,8 @@ export interface EraMaster {
   currency: string;
   inflation_rate: number;
   life_expectancy: number;
+  big_mac_price: number | null;
+  median_life_expectancy: number | null;
 }
 
 export interface SocialEvent {
@@ -42,6 +44,8 @@ export interface TimelineEntry {
   avg_annual_income: number;
   currency: string;
   life_expectancy: number;
+  big_mac_price: number | null;
+  median_life_expectancy: number | null;
 }
 
 export interface SimulationResult {

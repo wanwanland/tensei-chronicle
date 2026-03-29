@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { REGION_CURRENCY } from "@/lib/constants";
 import type { TimelineEntry } from "@/types";
-import { TrendingUp, Heart, Newspaper, Clock, ArrowRight } from "lucide-react";
+import { TrendingUp, Heart, Newspaper, Clock, ArrowRight, Beef } from "lucide-react";
 
 interface SummaryDashboardProps {
   timeline: TimelineEntry[];
@@ -33,6 +33,19 @@ export function SummaryDashboard({ timeline, region }: SummaryDashboardProps) {
   const firstJpyNote = !isJPY ? `(${formatJPY(toJPY(first.avg_annual_income, currencyCode, first.year))})` : "";
   const peakJpyNote = !isJPY ? `(${formatJPY(toJPY(peakIncome, currencyCode, peakIncomeEntry?.year ?? last.year))})` : "";
 
+  // Hamburger price
+  const firstBurger = first.big_mac_price;
+  const lastBurger = last.big_mac_price;
+  const burgerMultiplier = firstBurger && lastBurger && firstBurger > 0
+    ? (lastBurger / firstBurger).toFixed(1)
+    : null;
+  const firstBurgerJpy = firstBurger && !isJPY ? toJPY(firstBurger, currencyCode) : null;
+  const lastBurgerJpy = lastBurger && !isJPY ? toJPY(lastBurger, currencyCode) : null;
+
+  // Median life expectancy
+  const firstMedian = first.median_life_expectancy;
+  const lastMedian = last.median_life_expectancy;
+
   const totalEvents = timeline.reduce(
     (sum, e) => sum + e.social_events.length + e.regional_news.length,
     0
@@ -49,12 +62,12 @@ export function SummaryDashboard({ timeline, region }: SummaryDashboardProps) {
   return (
     <div className="mx-auto max-w-4xl px-4">
       {/* Stats Grid */}
-      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
         <StatCard
           icon={<Heart className="h-4 w-4" />}
-          label="平均寿命"
-          fromValue={`${first.life_expectancy}歳`}
-          toValue={`${last.life_expectancy}歳`}
+          label="平均寿命 / 中央値"
+          fromValue={`${first.life_expectancy}歳${firstMedian ? ` (中央${firstMedian}歳)` : ""}`}
+          toValue={`${last.life_expectancy}歳${lastMedian ? ` (中央${lastMedian}歳)` : ""}`}
           color="cyan"
           delay={0}
         />
@@ -75,6 +88,17 @@ export function SummaryDashboard({ timeline, region }: SummaryDashboardProps) {
           color="cyan"
           delay={0.2}
         />
+        {firstBurger != null && lastBurger != null && (
+          <StatCard
+            icon={<Beef className="h-4 w-4" />}
+            label="ハンバーガー価格"
+            fromValue={`${symbol}${firstBurger}${firstBurgerJpy ? ` (${Math.round(firstBurgerJpy)}円)` : ""}`}
+            toValue={`${symbol}${lastBurger}${lastBurgerJpy ? ` (${Math.round(lastBurgerJpy)}円)` : ""}`}
+            subtext={burgerMultiplier ? `${burgerMultiplier}倍に上昇` : undefined}
+            color="cyan"
+            delay={0.25}
+          />
+        )}
         <StatCard
           icon={<Clock className="h-4 w-4" />}
           label="生きた時代"
