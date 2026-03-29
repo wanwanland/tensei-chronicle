@@ -3,6 +3,7 @@ import { getSimulationById } from "@/lib/simulation";
 import { Timeline } from "@/components/timeline/Timeline";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { SummaryDashboard } from "@/components/result/SummaryDashboard";
+import { InputTerminal } from "@/components/input/InputTerminal";
 import { HudBar } from "./HudBar";
 import { User, MapPin, Calendar } from "lucide-react";
 import Link from "next/link";
@@ -125,13 +126,11 @@ export default async function ResultPage({ searchParams }: ResultPageProps) {
 
       <Timeline entries={result.timeline} />
 
-      <div className="mt-12 text-center">
-        <Link
-          href="/"
-          className="font-mono text-sm text-neon-cyan/60 transition-colors hover:text-neon-cyan"
-        >
-          [ 別の人生をシミュレーション ]
-        </Link>
+      <div className="mx-auto mt-16 max-w-lg px-4">
+        <p className="mb-6 text-center font-mono text-sm text-white/40">
+          別の人生をシミュレーション
+        </p>
+        <InputTerminal />
       </div>
     </div>
   );
