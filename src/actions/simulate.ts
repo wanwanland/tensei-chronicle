@@ -231,7 +231,9 @@ export async function simulate(input: SimulationInput): Promise<SimulationResult
   // Build timeline
   const timeline: TimelineEntry[] = [];
   const firstEra = eraMap.values().next().value;
-  const lifeExpectancy = firstEra?.life_expectancy ?? 75;
+  // Use median life expectancy (more realistic for individual lifespan)
+  // Average is dragged down by infant mortality, especially in developing countries
+  const lifeExpectancy = firstEra?.median_life_expectancy ?? firstEra?.life_expectancy ?? 75;
   const endYear = Math.min(birth_year + Math.ceil(lifeExpectancy), 2025);
   const defaultCurrency = firstEra?.currency ?? "USD";
 
