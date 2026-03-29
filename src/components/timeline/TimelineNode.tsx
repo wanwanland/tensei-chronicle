@@ -19,42 +19,70 @@ export function TimelineNode({ entry, index }: TimelineNodeProps) {
 
   return (
     <div ref={ref} className="relative flex items-start" data-year={entry.year}>
-      {/* Left content */}
-      <div className={cn("w-[calc(50%-20px)]", isLeft ? "pr-6" : "")}>
-        {isLeft && (
+      {/* Mobile: single column layout */}
+      <div className="flex items-start md:hidden">
+        {/* Age badge */}
+        <div className="relative z-10 flex w-10 flex-shrink-0 justify-center">
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={isInView ? { scale: 1, opacity: 1 } : {}}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-neon-cyan bg-black font-mono text-xs text-neon-cyan shadow-[0_0_10px_rgba(0,243,255,0.3)]"
           >
-            <NodeContent entry={entry} align="right" />
+            {entry.age}
           </motion.div>
-        )}
-      </div>
-
-      {/* Center age badge */}
-      <div className="relative z-10 flex w-10 flex-shrink-0 justify-center">
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={isInView ? { scale: 1, opacity: 1 } : {}}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-neon-cyan bg-black font-mono text-xs text-neon-cyan shadow-[0_0_10px_rgba(0,243,255,0.3)]"
-        >
-          {entry.age}
-        </motion.div>
-      </div>
-
-      {/* Right content */}
-      <div className={cn("w-[calc(50%-20px)]", !isLeft ? "pl-6" : "")}>
-        {!isLeft && (
+        </div>
+        {/* Card */}
+        <div className="min-w-0 flex-1 pl-4">
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
             <NodeContent entry={entry} align="left" />
           </motion.div>
-        )}
+        </div>
+      </div>
+
+      {/* Desktop: alternating left/right layout */}
+      <div className="hidden md:flex md:w-full md:items-start">
+        {/* Left content */}
+        <div className={cn("w-[calc(50%-20px)]", isLeft ? "pr-6" : "")}>
+          {isLeft && (
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              <NodeContent entry={entry} align="right" />
+            </motion.div>
+          )}
+        </div>
+
+        {/* Center age badge */}
+        <div className="relative z-10 flex w-10 flex-shrink-0 justify-center">
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={isInView ? { scale: 1, opacity: 1 } : {}}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-neon-cyan bg-black font-mono text-xs text-neon-cyan shadow-[0_0_10px_rgba(0,243,255,0.3)]"
+          >
+            {entry.age}
+          </motion.div>
+        </div>
+
+        {/* Right content */}
+        <div className={cn("w-[calc(50%-20px)]", !isLeft ? "pl-6" : "")}>
+          {!isLeft && (
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              <NodeContent entry={entry} align="left" />
+            </motion.div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -62,7 +90,7 @@ export function TimelineNode({ entry, index }: TimelineNodeProps) {
 
 function NodeContent({ entry, align }: { entry: TimelineEntry; align: "left" | "right" }) {
   return (
-    <GlassPanel className={cn("p-4", align === "right" ? "text-right" : "text-left")}>
+    <GlassPanel className={cn("p-4", align === "right" ? "md:text-right" : "text-left")}>
       <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-neon-cyan/50">
         {entry.year} / {entry.era_name}
       </p>

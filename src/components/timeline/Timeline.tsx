@@ -11,8 +11,8 @@ interface TimelineProps {
 export function Timeline({ entries }: TimelineProps) {
   return (
     <div className="relative mx-auto max-w-4xl px-4 py-12">
-      {/* Central vertical line */}
-      <div className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-gradient-to-b from-neon-cyan/40 via-neon-cyan/15 to-transparent" />
+      {/* Central vertical line - left on mobile, center on desktop */}
+      <div className="absolute top-0 bottom-0 left-[36px] w-px bg-gradient-to-b from-neon-cyan/40 via-neon-cyan/15 to-transparent md:left-1/2 md:-translate-x-1/2" />
 
       {entries.map((entry, i) => (
         <div key={entry.year}>

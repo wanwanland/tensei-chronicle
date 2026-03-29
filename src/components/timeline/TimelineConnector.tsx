@@ -8,7 +8,7 @@ export function TimelineConnector() {
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   return (
-    <div ref={ref} className="flex justify-center">
+    <div ref={ref} className="flex pl-[31px] md:justify-center md:pl-0">
       <motion.div
         initial={{ scaleY: 0 }}
         animate={isInView ? { scaleY: 1 } : {}}

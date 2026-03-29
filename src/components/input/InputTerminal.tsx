@@ -5,17 +5,27 @@ import { useRouter } from "next/navigation";
 import { Play, Terminal } from "lucide-react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { NeonButton } from "@/components/ui/NeonButton";
-import { NeonInput } from "@/components/ui/NeonInput";
 import { NeonSelect } from "@/components/ui/NeonSelect";
 import { BIRTH_YEAR_MIN, BIRTH_YEAR_MAX, GENDER_OPTIONS, REGION_OPTIONS } from "@/lib/constants";
 import { simulate } from "@/actions/simulate";
+
+const CURRENT_YEAR = new Date().getFullYear();
+
+const BIRTH_YEAR_OPTIONS = Array.from(
+  { length: BIRTH_YEAR_MAX - BIRTH_YEAR_MIN + 1 },
+  (_, i) => {
+    const year = BIRTH_YEAR_MAX - i;
+    const age = CURRENT_YEAR - year;
+    return { value: String(year), label: `${year}年（現在${age}歳）` };
+  }
+);
 
 export function InputTerminal() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [birthYear, setBirthYear] = useState("1980");
   const [gender, setGender] = useState("male");
-  const [region, setRegion] = useState("東京");
+  const [region, setRegion] = useState("日本");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,14 +62,11 @@ export function InputTerminal() {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <NeonInput
+        <NeonSelect
           label="Birth Year / 出生年"
-          type="number"
-          min={BIRTH_YEAR_MIN}
-          max={BIRTH_YEAR_MAX}
+          options={BIRTH_YEAR_OPTIONS}
           value={birthYear}
           onChange={(e) => setBirthYear(e.target.value)}
-          placeholder="1980"
         />
 
         <NeonSelect
