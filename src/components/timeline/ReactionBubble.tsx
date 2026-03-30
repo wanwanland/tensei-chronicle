@@ -56,13 +56,13 @@ export function ReactionBubble({ input }: ReactionBubbleProps) {
   };
 
   return (
-    <div className="mt-1">
+    <div className="mt-2">
       <button
         onClick={handleClick}
-        className="flex items-center gap-1 font-mono text-[10px] text-white/20 transition-colors hover:text-neon-magenta/60"
+        className="flex items-center gap-1.5 rounded-full border border-neon-magenta/30 bg-neon-magenta/10 px-3 py-1 font-mono text-xs text-neon-magenta/80 transition-all hover:border-neon-magenta/50 hover:bg-neon-magenta/20 hover:text-neon-magenta"
       >
-        <MessageCircle className="h-3 w-3" />
-        <span>{open ? "閉じる" : "この人の声"}</span>
+        <MessageCircle className="h-3.5 w-3.5" />
+        <span>{open ? "閉じる" : "💬 この人の声を聞く"}</span>
       </button>
 
       <AnimatePresence>
