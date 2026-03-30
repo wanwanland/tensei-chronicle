@@ -15,6 +15,10 @@
   scrollbar-color: rgba(0, 243, 255, 0.3) transparent;
 }
 
+html, body {
+  overflow-x: hidden;
+}
+
 body {
   background: #000000;
   color: var(--color-foreground);
